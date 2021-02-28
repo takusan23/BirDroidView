@@ -1,8 +1,8 @@
 package io.github.takusan23.birdroidviewsample
 
+import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import io.github.takusan23.birdroidview.BirDroidView
 
@@ -11,7 +11,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        supportActionBar?.hide()
+
         val birDroidView = findViewById<BirDroidView>(R.id.activity_main_bir_droid_view)
-        birDroidView.playerBitmap = ContextCompat.getDrawable(this, R.mipmap.ic_launcher_round)!!.toBitmap()
+
     }
 }

@@ -17,6 +17,9 @@ open class PlayerClass(private val context: Context, private val viewHeight: Int
     /** プレイヤーのBitmap */
     lateinit var playerBitmap: Bitmap
 
+    /** プレイヤーの色 */
+    private var playerColor: Int? = null
+
     /** プレイヤーの位置（横） */
     var playerXPos = 0f
 
@@ -54,14 +57,18 @@ open class PlayerClass(private val context: Context, private val viewHeight: Int
      * プレイヤーBitmap等の用意をします
      *
      * @param bitmap 正方形限定プレイヤー画像。四角いほうがいい。
+     * @param color 色。
      * */
-    fun init(bitmap: Bitmap) {
+    fun init(bitmap: Bitmap, color: Int?) {
 
         // プレイヤーの大きさ。Viewの10％の大きさ
         val playerHeight = RelativeTool.calc(viewHeight, 0.1f).toInt()
 
         // プレイヤー用意
         playerBitmap = Bitmap.createScaledBitmap(bitmap, playerHeight, playerHeight, true)
+
+        // プレイヤーの色用意
+        playerColor = color
 
         // 位置初期化
         playerXPos = (viewWidth - playerBitmap.width) / 4f // 左寄りに（意味深）
@@ -76,13 +83,9 @@ open class PlayerClass(private val context: Context, private val viewHeight: Int
      *
      * 物理は嫌いなので詳しいことはわかりません
      * */
-    fun setCalcConstValue(v0: Float, gravity: Float) {
-        if (v0 > 0) {
-            this.v0 = v0
-        }
-        if (gravity > 0) {
-            this.gravity = gravity
-        }
+    fun setCalcConstValue(v0: Float?, gravity: Float?) {
+        this.v0 = v0 ?: this.v0
+        this.gravity = gravity ?: this.gravity
     }
 
     /**
@@ -90,6 +93,10 @@ open class PlayerClass(private val context: Context, private val viewHeight: Int
      * @param canvas onDrawの引数
      * */
     fun draw(canvas: Canvas) {
+        // 色を付ける場合
+        if (playerColor != null) {
+            playerPaint.colorFilter = PorterDuffColorFilter(playerColor!!, PorterDuff.Mode.SRC_IN)
+        }
         canvas.drawBitmap(playerBitmap, playerXPos, playerYPos, playerPaint)
     }
 
@@ -107,7 +114,7 @@ open class PlayerClass(private val context: Context, private val viewHeight: Int
         val centerXPos = (viewWidth - measure) / 2f
         // その上に文字（上ぴったりにならないようにちょっとずらす）
         canvas.drawText(
-            score.toString(),
+            scoreText,
             centerXPos,
             rect.height().toFloat() + RelativeTool.calc(viewHeight, 0.05f),
             scorePaint

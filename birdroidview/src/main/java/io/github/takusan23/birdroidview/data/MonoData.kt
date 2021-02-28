@@ -34,15 +34,45 @@ open class MonoClass(private val context: Context, private val viewHeight: Int, 
     /** 当たり判定用の四角を赤く描画するかどうか */
     private val isDebugMode = false
 
-    /** 画面の大きさが取れたらよんでください。 */
-    fun init() {
+    /** 通り抜けるスペース。大きさによって変わる */
+    private var space = 500f
+
+    /** 移動速度 */
+    private var speed = 10f
+
+    /** 障害物の色の配列。この中からランダムに色をとる */
+    val colorList = arrayListOf(
+        // blue
+        Color.parseColor("#1565c0"),
+        Color.parseColor("#5e92f3"),
+        Color.parseColor("#003c8f"),
+        // green
+        Color.parseColor("#2e7d32"),
+        Color.parseColor("#60ad5e"),
+        Color.parseColor("#005005"),
+        // orange
+        Color.parseColor("#ef6c00"),
+        Color.parseColor("#ff9d3f"),
+        Color.parseColor("#b53d00"),
+    )
+
+    /**
+     * 画面の大きさが取れたらよんでください。
+     * @param space 通り抜けるスペース
+     * */
+    fun init(space: Float? = null) {
+
+        // nullならスペースを計算で出す
+        this.space = space ?: RelativeTool.calc(viewHeight, 0.3f)
+
+        speed = RelativeTool.calc(viewWidth, 0.011f) // 10ぐらい
 
         // 障害物の移動
         GlobalScope.launch(coroutineJob) {
             while (true) {
                 delay(updateMs)
                 monoList.forEach { monoData ->
-                    monoData.xPos -= 10
+                    monoData.xPos -= speed
                 }
             }
         }
@@ -55,9 +85,6 @@ open class MonoClass(private val context: Context, private val viewHeight: Int, 
                 // 棒の幅
                 val monoWidth = RelativeTool.calc(viewWidth, 0.1f)
 
-                // スペース
-                val space = RelativeTool.calc(viewHeight, 0.3f)
-
                 // 上の棒の下の位置
                 val startXPos = viewWidth + monoWidth
                 // ランダムな値
@@ -66,7 +93,10 @@ open class MonoClass(private val context: Context, private val viewHeight: Int, 
                     RelativeTool.calc(viewHeight, 0.7f).toInt()
                 ).toFloat()
                 // スペースの下の位置
-                val addSpaceHeight = randomHeight + space
+                val addSpaceHeight = randomHeight + this@MonoClass.space
+
+                // 色を取り出す
+                val randomColor = colorList.random()
 
                 // 上
                 add(
@@ -74,13 +104,13 @@ open class MonoClass(private val context: Context, private val viewHeight: Int, 
                     width = monoWidth,
                     xPos = startXPos,
                     yPos = 0f,
-                    paint = Paint(),
+                    paint = Paint().apply { color = randomColor },
                     isEnable = true
                 )
 
                 // 当たり判定用のRectを出す
                 add(
-                    height = space,
+                    height = this@MonoClass.space,
                     width = monoWidth,
                     xPos = startXPos,
                     yPos = randomHeight,
@@ -97,31 +127,22 @@ open class MonoClass(private val context: Context, private val viewHeight: Int, 
                     width = monoWidth,
                     xPos = startXPos,
                     yPos = addSpaceHeight,
-                    paint = Paint(),
+                    paint = Paint().apply { color = randomColor },
                     isEnable = true
                 )
-
 
             }
         }
     }
 
     /**
-     * 相対サイズを出す
-     * @param float 0から1の値
-     * @return [viewHeight]に[float]を掛けた値
+     * 色の配列をセットする。既存の色の配列は削除されます
+     * @param list 色の配列
      * */
-    private fun calcHeight(float: Float): Float {
-        return viewHeight * float
-    }
-
-    /**
-     * 相対サイズを出す
-     * @param float 0から1の値
-     * @return [viewWidth]に[float]を掛けた値
-     * */
-    private fun calcWidth(float: Float): Float {
-        return viewWidth * float
+    fun setAllColorList(list: ArrayList<Int>) {
+        if (list.isEmpty()) return
+        colorList.clear()
+        colorList.addAll(list)
     }
 
     /**
@@ -132,6 +153,7 @@ open class MonoClass(private val context: Context, private val viewHeight: Int, 
         monoList.forEach { mono ->
             // 有効になっているものだけ
             if (mono.isEnable) {
+                // 描画
                 canvas.drawRoundRect(
                     mono.xPos,
                     mono.yPos,
