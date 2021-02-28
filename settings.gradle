@@ -1,0 +1,3 @@
+include ':birdroidview'
+include ':sample'
+rootProject.name = "BirDroidView"
